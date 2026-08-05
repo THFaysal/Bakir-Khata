@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Record Payment')}"></head>
+<body class="app-body">
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('payments')}"></div>
+
+    <div class="app-main">
+        <div th:replace="~{fragments/topbar :: topbar('Record Payment')}"></div>
+        <div th:replace="~{fragments/toast :: toast}"></div>
+
+        <main class="page">
+            <div class="form-card-wrap">
+                <div class="card form-card">
+                    <div class="card__header">
+                        <h3>Record a Payment</h3>
+                    </div>
+                    <div class="card__body">
+                        <form th:action="@{/payments/save}" th:object="${paymentDTO}" method="post" enctype="multipart/form-data" class="form" id="paymentForm" novalidate>
+
+                            <h4 class="form-section-title">Payment Details</h4>
+
+                            <div class="form-group">
+                                <label for="loanId">Loan <span class="required-mark">*</span></label>
+                                <select id="loanId" th:field="*{loanId}" class="form-control form-select" required>
+                                    <option value="">Select loan</option>
+                                    <option th:each="l : ${loans}" th:value="${l.id}"
+                                            th:data-remaining="${l.remainingAmount}"
+                                            th:selected="${l.id == paymentDTO.loanId}"
+                                            th:text="'#' + ${l.id} + ' — ' + ${l.lender.name} + ' (Remaining ৳ ' + ${#numbers.formatDecimal(l.remainingAmount, 0, 'COMMA', 2, 'POINT')} + ')'"></option>
+                                </select>
+                                <span class="form-error" th:if="${#fields.hasErrors('loanId')}" th:errors="*{loanId}">Error</span>
+                                <p class="form-hint" th:if="${loans.isEmpty()}">
+                                    No loans yet — <a th:href="@{/loans/new}">add one first</a>.
+                                </p>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group form-group--floating" th:classappend="${#fields.hasErrors('amount')} ? 'form-group--invalid'">
+                                    <input type="number" step="0.01" min="0.01" id="amount" th:field="*{amount}" class="form-control" placeholder=" " required/>
+                                    <label for="amount">Amount (৳) <span class="required-mark">*</span></label>
+                                    <span class="form-error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Error</span>
+                                    <span class="form-hint" id="remainingHint"></span>
+                                </div>
+
+                                <div class="form-group form-group--floating" th:classappend="${#fields.hasErrors('paymentDate')} ? 'form-group--invalid'">
+                                    <input type="date" id="paymentDate" th:field="*{paymentDate}" class="form-control" placeholder=" " required/>
+                                    <label for="paymentDate">Payment Date <span class="required-mark">*</span></label>
+                                    <span class="form-error" th:if="${#fields.hasErrors('paymentDate')}" th:errors="*{paymentDate}">Error</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Payment Method <span class="required-mark">*</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="paymentMethod" value="CASH" th:field="*{paymentMethod}"/>
+                                        <span><i class="bi bi-cash"></i> Cash</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="paymentMethod" value="BANK" th:field="*{paymentMethod}"/>
+                                        <span><i class="bi bi-bank"></i> Bank</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="paymentMethod" value="MOBILE_BANKING" th:field="*{paymentMethod}"/>
+                                        <span><i class="bi bi-phone"></i> Mobile Banking</span>
+                                    </label>
+                                </div>
+                                <span class="form-error" th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}">Error</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="notes">Notes</label>
+                                <textarea id="notes" th:field="*{notes}" class="form-control" rows="2" placeholder="e.g. Paid after office"></textarea>
+                            </div>
+
+                            <h4 class="form-section-title">Payment Proof (optional)</h4>
+                            <div class="form-group">
+                                <label for="proofFile" class="file-upload">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <span>Upload receipt or screenshot</span>
+                                    <input type="file" id="proofFile" th:field="*{proofFile}" class="file-upload__input" accept="image/*,.pdf"/>
+                                </label>
+                                <img id="proofFilePreview" class="image-preview" style="display:none" alt="Preview"/>
+                            </div>
+
+                            <div class="form-actions">
+                                <a th:href="@{/dashboard}" class="btn btn--secondary">Cancel</a>
+                                <button type="submit" class="btn btn--primary" id="submitBtn">
+                                    <span>Record Payment</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/validation.js}"></script>
+<script th:src="@{/js/forms.js}"></script>
+<script th:src="@{/js/payment-form.js}"></script>
+</body>
+</html>

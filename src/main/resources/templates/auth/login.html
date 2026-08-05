@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Login')}"></head>
+<body class="auth-body">
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-card__brand">
+            <span class="auth-card__logo"><i class="bi bi-wallet2"></i></span>
+            <h1>Bakir Khata</h1>
+            <p>Keep track of every taka you borrow, every taka you repay.</p>
+        </div>
+
+        <div class="alert alert--danger" th:if="${param.error}">Invalid email/mobile or password/PIN.</div>
+        <div class="alert alert--success" th:if="${param.logout}">You have been logged out.</div>
+        <div class="alert alert--success" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+        <form th:action="@{/login}" method="post" class="form" id="loginForm" novalidate>
+            <div class="login-toggle" role="tablist">
+                <button type="button" class="login-toggle__btn login-toggle__btn--active" data-login-mode="email">
+                    <i class="bi bi-envelope"></i> Email &amp; Password
+                </button>
+                <button type="button" class="login-toggle__btn" data-login-mode="mobile">
+                    <i class="bi bi-phone"></i> Mobile &amp; PIN
+                </button>
+            </div>
+
+            <div class="form-group form-group--floating">
+                <input type="text" id="identifier" name="identifier" class="form-control" placeholder=" " required autofocus/>
+                <label for="identifier" id="identifierLabel">Email address</label>
+                <i class="bi bi-envelope form-group__icon" id="identifierIcon"></i>
+            </div>
+
+            <div class="form-group form-group--floating">
+                <input type="password" id="credential" name="credential" class="form-control" placeholder=" " required minlength="4"/>
+                <label for="credential" id="credentialLabel">Password</label>
+                <button type="button" class="form-group__toggle" data-toggle-password="credential" aria-label="Show password">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+
+            <label class="checkbox-option">
+                <input type="checkbox" name="remember-me" value="true"/>
+                <span>Remember me for 14 days</span>
+            </label>
+
+            <button type="submit" class="btn btn--primary btn--block">
+                <span>Log In</span>
+            </button>
+        </form>
+
+        <p class="auth-card__footer">Don't have an account? <a th:href="@{/register}">Create one</a></p>
+    </div>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/validation.js}"></script>
+<script th:src="@{/js/login.js}"></script>
+</body>
+</html>

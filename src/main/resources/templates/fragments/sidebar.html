@@ -1,0 +1,27 @@
+<aside class="sidebar" id="sidebar" th:fragment="sidebar(active)">
+    <div class="sidebar__brand">
+        <span class="sidebar__logo"><i class="bi bi-wallet2"></i></span>
+        <span class="sidebar__name">Bakir Khata</span>
+    </div>
+
+    <nav class="sidebar__nav">
+        <a th:href="@{/dashboard}" class="sidebar__link" th:classappend="${active == 'dashboard'} ? 'sidebar__link--active'">
+            <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+        </a>
+        <a th:href="@{/lenders}" class="sidebar__link" th:classappend="${active == 'lenders'} ? 'sidebar__link--active'">
+            <i class="bi bi-people"></i><span>Lenders</span>
+        </a>
+        <a th:href="@{/loans}" class="sidebar__link" th:classappend="${active == 'loans'} ? 'sidebar__link--active'">
+            <i class="bi bi-cash-coin"></i><span>Loans</span>
+        </a>
+        <a th:href="@{/payments/new}" class="sidebar__link" th:classappend="${active == 'payments'} ? 'sidebar__link--active'">
+            <i class="bi bi-credit-card"></i><span>Payments</span>
+        </a>
+        <a th:href="@{/reminders}" class="sidebar__link" th:classappend="${active == 'reminders'} ? 'sidebar__link--active'">
+            <i class="bi bi-bell"></i><span>Reminders</span>
+        </a>
+        <a href="#" class="sidebar__link" th:classappend="${active == 'profile'} ? 'sidebar__link--active'">
+            <i class="bi bi-person-circle"></i><span>Profile</span>
+        </a>
+    </nav>
+</aside>
