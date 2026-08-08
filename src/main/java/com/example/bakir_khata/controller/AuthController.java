@@ -34,14 +34,22 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("registrationDTO") RegistrationDTO dto,
-                            BindingResult bindingResult,
-                            RedirectAttributes redirectAttributes) {
+                           BindingResult bindingResult,
+                           RedirectAttributes redirectAttributes) {
+
+        if (dto.getEmail() != null && userService.emailExists(dto.getEmail())) {
+            bindingResult.rejectValue("email", "duplicate", "An account with this email already exists.");
+        }
+        if (dto.getPhone() != null && userService.phoneExists(dto.getPhone())) {
+            bindingResult.rejectValue("phone", "duplicate", "An account with this phone number already exists.");
+        }
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "mismatch", "Passwords do not match");
         }
         if (!dto.isPinConfirmed()) {
             bindingResult.rejectValue("confirmPin", "mismatch", "PIN and confirm PIN do not match");
         }
+
         if (bindingResult.hasErrors()) {
             return "auth/register";
         }
