@@ -19,9 +19,8 @@
         </a>
         <a th:href="@{/reminders}" class="sidebar__link" th:classappend="${active == 'reminders'} ? 'sidebar__link--active'">
             <i class="bi bi-bell"></i><span>Reminders</span>
-        </a>
-        <a href="#" class="sidebar__link" th:classappend="${active == 'profile'} ? 'sidebar__link--active'">
-            <i class="bi bi-person-circle"></i><span>Profile</span>
-        </a>
+        </a><a th:href="@{/profile}" class="sidebar__link" th:classappend="${active == 'profile'} ? 'sidebar__link--active'">
+        <i class="bi bi-person-circle"></i><span>Profile</span>
+    </a>
     </nav>
 </aside>

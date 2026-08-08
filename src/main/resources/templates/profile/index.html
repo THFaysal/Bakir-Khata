@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Profile')}"></head>
+<body class="app-body">
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('profile')}"></div>
+
+    <div class="app-main">
+        <div th:replace="~{fragments/topbar :: topbar('My Profile')}"></div>
+        <div th:replace="~{fragments/toast :: toast}"></div>
+
+        <main class="page">
+            <div class="detail-grid">
+
+                <div class="card">
+                    <div class="card__header">
+                        <h3><i class="bi bi-person-badge"></i> Identification</h3>
+                    </div>
+                    <div class="card__body profile-identity">
+                        <div class="profile-photo-wrap">
+                            <img th:if="${currentUser.profileImagePath}"
+                                 th:src="@{/uploads/{p}(p=${currentUser.profileImagePath})}"
+                                 class="profile-photo" alt="Profile photo"/>
+                            <span th:unless="${currentUser.profileImagePath}" class="profile-photo profile-photo--placeholder"
+                                  th:text="${#strings.substring(currentUser.name,0,1)}">U</span>
+                        </div>
+
+                        <form th:action="@{/profile/picture}" method="post" enctype="multipart/form-data" class="form" style="margin-top: var(--space-3)">
+                            <label for="profileImage" class="file-upload">
+                                <i class="bi bi-camera"></i>
+                                <span>Upload / change photo</span>
+                                <input type="file" id="profileImage" name="profileImage" class="file-upload__input" accept="image/*" required/>
+                            </label>
+                            <button type="submit" class="btn btn--secondary btn--sm btn--block" style="margin-top: var(--space-2)">
+                                Save Photo
+                            </button>
+                        </form>
+
+                        <dl class="def-list" style="margin-top: var(--space-4)">
+                            <dt>Name</dt><dd th:text="${currentUser.name}">Name</dd>
+                            <dt>Email</dt><dd th:text="${currentUser.email}">Email</dd>
+                            <dt>Phone</dt><dd th:text="${currentUser.phone}">Phone</dd>
+                            <dt>Member Since</dt><dd th:text="${#temporals.format(currentUser.createdAt, 'dd MMM yyyy')}">Date</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__header">
+                        <h3><i class="bi bi-star"></i> Borrower Rating</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="rating-score">
+                            <span class="rating-score__value" th:text="${rating.score}">3.0</span>
+                            <span class="rating-score__max">/ 5.0</span>
+                        </div>
+                        <div class="rating-stars" aria-hidden="true">
+                            <i class="bi" th:each="i : ${#numbers.sequence(1,5)}"
+                               th:classappend="${i <= rating.filledStars} ? 'bi-star-fill' : 'bi-star'"></i>
+                        </div>
+                        <p class="rating-label" th:text="${rating.label}">New Borrower</p>
+
+                        <div class="rating-breakdown" th:if="${rating.hasHistory}">
+                            <div class="rating-breakdown__row">
+                                <span class="dot dot--green"></span> Paid on time
+                                <strong th:text="${rating.onTimeCount}">0</strong>
+                            </div>
+                            <div class="rating-breakdown__row">
+                                <span class="dot dot--amber"></span> Paid late
+                                <strong th:text="${rating.lateCount}">0</strong>
+                            </div>
+                            <div class="rating-breakdown__row">
+                                <span class="dot dot--red"></span> Currently overdue
+                                <strong th:text="${rating.overdueCount}">0</strong>
+                            </div>
+                        </div>
+                        <p class="empty-state__desc" th:unless="${rating.hasHistory}">
+                            Your rating will build up once you start repaying loans.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__header">
+                        <h3><i class="bi bi-wallet2"></i> Loan Summary</h3>
+                    </div>
+                    <div class="card__body">
+                        <dl class="def-list">
+                            <dt>Total Loans</dt><dd th:text="${loanCount}">0</dd>
+                            <dt>Total Borrowed</dt><dd th:text="'৳ ' + ${#numbers.formatDecimal(totalBorrowed, 0, 'COMMA', 2, 'POINT')}">0</dd>
+                            <dt>Total Paid</dt><dd th:text="'৳ ' + ${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')}">0</dd>
+                            <dt>Outstanding Due</dt>
+                            <dd th:text="'৳ ' + ${#numbers.formatDecimal(remaining, 0, 'COMMA', 2, 'POINT')}"
+                                th:classappend="${hasDue} ? 'text-danger'">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3><i class="bi bi-exclamation-triangle"></i> Danger Zone</h3>
+                </div>
+                <div class="card__body">
+                    <div class="alert alert--danger" th:if="${hasDue}">
+                        You still owe <strong th:text="'৳ ' + ${#numbers.formatDecimal(remaining, 0, 'COMMA', 2, 'POINT')}">0</strong>
+                        across your loans. You must clear all outstanding dues before you can delete your profile.
+                    </div>
+                    <p class="empty-state__desc" style="margin-bottom: var(--space-3)">
+                        Deleting your profile permanently removes your account and every lender, loan, and payment
+                        record you own. This cannot be undone.
+                    </p>
+
+                    <form th:action="@{/profile/delete}" method="post" class="confirm-delete-form" data-name="your profile">
+                        <button type="submit" class="btn btn--danger" th:disabled="${hasDue}">
+                            <i class="bi bi-trash"></i> Delete My Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <h3>Delete Your Profile?</h3>
+        <p>This permanently deletes your account and all of your lenders, loans, and payment records. This cannot be undone.</p>
+        <div class="modal__actions">
+            <button type="button" class="btn btn--secondary" id="modalCancel">Cancel</button>
+            <button type="button" class="btn btn--danger" id="modalConfirm">Delete Permanently</button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/forms.js}"></script>
+<script th:src="@{/js/table.js}"></script>
+</body>
+</html>
