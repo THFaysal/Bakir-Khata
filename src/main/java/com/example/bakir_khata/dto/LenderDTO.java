@@ -3,35 +3,38 @@ package com.example.bakir_khata.dto;
 
 import com.example.bakir_khata.model.enums.Relationship;
 import jakarta.validation.constraints.*;
-import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-@Data
-public class LenderDTO {
+public record LenderDTO(
 
-    private Long id;
+        Long id,
 
-    @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name cannot exceed 100 characters")
-    private String name;
+        @NotBlank(message = "Name is required")
+        @Size(max = 100, message = "Name cannot exceed 100 characters")
+        String name,
 
-    @NotBlank(message = "Phone is required")
-    @Pattern(regexp = "^[0-9+\\-\\s]{7,20}$", message = "Phone must be numeric")
-    private String phone;
+        @NotBlank(message = "Phone is required")
+        @Pattern(regexp = "^[0-9+\\-\\s]{7,20}$", message = "Phone must be numeric")
+        String phone,
 
-    @Email(message = "Enter a valid email address")
-    private String email;
+        @Email(message = "Enter a valid email address")
+        String email,
 
-    @Size(max = 255, message = "Address cannot exceed 255 characters")
-    private String address;
+        @Size(max = 255, message = "Address cannot exceed 255 characters")
+        String address,
 
-    @NotNull(message = "Relationship is required")
-    private Relationship relationship;
+        @NotNull(message = "Relationship is required")
+        Relationship relationship,
 
-    @Size(max = 1000, message = "Notes cannot exceed 1000 characters")
-    private String notes;
+        @Size(max = 1000, message = "Notes cannot exceed 1000 characters")
+        String notes,
 
-    private MultipartFile profileImage;
+        MultipartFile profileImage,
 
-    private String existingProfileImagePath;
+        String existingProfileImagePath
+) {
+
+    public LenderDTO() {
+        this(null, null, null, null, null, null, null, null, null);
+    }
 }
