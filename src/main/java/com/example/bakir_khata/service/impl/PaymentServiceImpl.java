@@ -1,6 +1,7 @@
 package com.example.bakir_khata.service.impl;
 
 import com.example.bakir_khata.dto.PaymentDTO;
+import com.example.bakir_khata.exception.BusinessRuleException;
 import com.example.bakir_khata.model.Loan;
 import com.example.bakir_khata.model.Payment;
 import com.example.bakir_khata.model.User;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -25,22 +27,34 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public Payment recordPayment(PaymentDTO dto, User user) {
-        Loan loan = loanService.getLoanById(dto.getLoanId(), user);
+        Loan loan = loanService.getLoanById(dto.loanId(), user);
+
+        // Defense in depth: the controller already checks this for a nice inline form error,
+        // but the service must never persist an impossible payment even if called another way.
+        if (dto.paymentDate() != null) {
+            if (dto.paymentDate().isBefore(loan.getBorrowDate())) {
+                throw new BusinessRuleException(
+                        "Payment date cannot be before the loan's issue date (" + loan.getBorrowDate() + ").");
+            }
+            if (dto.paymentDate().isAfter(LocalDate.now())) {
+                throw new BusinessRuleException("Payment date cannot be in the future.");
+            }
+        }
 
         Payment payment = new Payment();
         payment.setLoan(loan);
-        payment.setAmount(dto.getAmount());
-        payment.setPaymentDate(dto.getPaymentDate());
-        payment.setPaymentMethod(dto.getPaymentMethod());
-        payment.setNotes(dto.getNotes());
+        payment.setAmount(dto.amount());
+        payment.setPaymentDate(dto.paymentDate());
+        payment.setPaymentMethod(dto.paymentMethod());
+        payment.setNotes(dto.notes());
 
-        if (dto.getProofFile() != null && !dto.getProofFile().isEmpty()) {
-            String path = fileStorageService.store(dto.getProofFile(), "payments");
+        if (dto.proofFile() != null && !dto.proofFile().isEmpty()) {
+            String path = fileStorageService.store(dto.proofFile(), "payments");
             payment.setProofFilePath(path);
         }
 
         // Deduct from the loan first so an over-payment is rejected before the payment row is persisted.
-        loanService.applyPayment(loan, dto.getAmount());
+        loanService.applyPayment(loan, dto.amount());
 
         return paymentRepository.save(payment);
     }

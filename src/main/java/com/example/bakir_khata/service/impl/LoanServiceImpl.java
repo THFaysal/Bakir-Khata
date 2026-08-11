@@ -36,39 +36,64 @@ public class LoanServiceImpl implements LoanService {
             throw new BusinessRuleException("Installment count and expected installment amount are required for installment loans.");
         }
 
-        Lender lender = lenderRepository.findById(dto.getLenderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Lender not found"));
-        if (!lender.getUser().equals(user)) {
-            throw new ResourceNotFoundException("Lender not found");
-        }
-
-        boolean isNew = dto.getId() == null;
-        Loan loan = isNew ? new Loan() : getLoanById(dto.getId(), user);
-
-        loan.setLender(lender);
-        loan.setUser(user);
-        loan.setAmount(dto.getAmount());
-        loan.setBorrowDate(dto.getBorrowDate());
-        loan.setDueDate(dto.getDueDate());
-        loan.setPurpose(dto.getPurpose());
-        loan.setPriority(dto.getPriority());
-        loan.setTag(dto.getTag());
-        loan.setPaymentType(dto.getPaymentType());
-        loan.setInstallmentCount(dto.getInstallmentCount());
-        loan.setExpectedInstallmentAmount(dto.getExpectedInstallmentAmount());
-        loan.setNotes(dto.getNotes());
+        boolean isNew = dto.id() == null;
 
         if (isNew) {
-            loan.setRemainingAmount(dto.getAmount());
-            loan.setStatus(LoanStatus.PENDING);
-        } else {
-            // Amount may have been edited; keep remaining consistent with amount minus what's already paid.
-            BigDecimal alreadyPaid = loan.getAmount().subtract(loan.getRemainingAmount());
-            BigDecimal newRemaining = dto.getAmount().subtract(alreadyPaid);
-            if (newRemaining.compareTo(BigDecimal.ZERO) < 0) {
-                throw new BusinessRuleException("New loan amount is less than the amount already paid.");
+            Lender lender = lenderRepository.findById(dto.lenderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Lender not found"));
+            if (!lender.getUser().equals(user)) {
+                throw new ResourceNotFoundException("Lender not found");
             }
-            loan.setRemainingAmount(newRemaining);
+
+            Loan loan = new Loan();
+            loan.setLender(lender);
+            loan.setUser(user);
+            loan.setAmount(dto.amount());
+            loan.setRemainingAmount(dto.amount());
+            loan.setBorrowDate(dto.borrowDate());
+            loan.setDueDate(dto.dueDate());
+            loan.setPurpose(dto.purpose());
+            loan.setPriority(dto.priority());
+            loan.setTag(dto.tag());
+            loan.setPaymentType(dto.paymentType());
+            loan.setInstallmentCount(dto.installmentCount());
+            loan.setExpectedInstallmentAmount(dto.expectedInstallmentAmount());
+            loan.setNotes(dto.notes());
+            loan.setStatus(LoanStatus.PENDING);
+            return loanRepository.save(loan);
+        }
+        Loan loan = getLoanById(dto.id(), user);
+
+        if (loan.isFullyLocked()) {
+            throw new BusinessRuleException("This loan is fully settled and can no longer be edited.");
+        }
+
+        if (loan.isUntouched()) {
+            loan.setAmount(dto.amount());
+            loan.setDueDate(dto.dueDate());
+            loan.setPurpose(dto.purpose());
+            loan.setPriority(dto.priority());
+            loan.setTag(dto.tag());
+            loan.setPaymentType(dto.paymentType());
+            loan.setInstallmentCount(dto.installmentCount());
+            loan.setExpectedInstallmentAmount(dto.expectedInstallmentAmount());
+            loan.setNotes(dto.notes());
+            loan.setRemainingAmount(dto.amount());
+            recalculateStatus(loan);
+        } else {
+            if (dto.amount().compareTo(loan.getAmount()) != 0) {
+                throw new BusinessRuleException("Loan amount cannot be changed after a payment has been recorded.");
+            }
+            if (dto.paymentType() != loan.getPaymentType()
+                    || !java.util.Objects.equals(dto.installmentCount(), loan.getInstallmentCount())
+                    || !java.util.Objects.equals(dto.expectedInstallmentAmount(), loan.getExpectedInstallmentAmount())) {
+                throw new BusinessRuleException("Installment plan cannot be changed after a payment has been recorded.");
+            }
+            loan.setDueDate(dto.dueDate());
+            loan.setPurpose(dto.purpose());
+            loan.setPriority(dto.priority());
+            loan.setTag(dto.tag());
+            loan.setNotes(dto.notes());
             recalculateStatus(loan);
         }
 
@@ -132,10 +157,12 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public void deleteLoan(Long id, User user) {
         Loan loan = getLoanById(id, user);
+        if (!loan.isDeletable()) {
+            throw new BusinessRuleException(
+                    "This loan cannot be deleted because payments have already been recorded against it.");
+        }
         loanRepository.delete(loan);
     }
-
-
     @Override
     public void refreshOverdueStatuses() {
         LocalDate today = LocalDate.now();
@@ -159,7 +186,6 @@ public class LoanServiceImpl implements LoanService {
         loanRepository.save(loan);
     }
 
-    /** Recomputes status from remaining balance vs. due date; called after a loan or payment change. */
     private void recalculateStatus(Loan loan) {
         if (loan.getRemainingAmount().compareTo(BigDecimal.ZERO) <= 0) {
             loan.setStatus(LoanStatus.PAID);

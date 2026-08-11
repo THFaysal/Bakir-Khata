@@ -37,13 +37,13 @@ public class AuthController {
                            BindingResult bindingResult,
                            RedirectAttributes redirectAttributes) {
 
-        if (dto.getEmail() != null && userService.emailExists(dto.getEmail())) {
+        if (dto.email() != null && userService.emailExists(dto.email())) {
             bindingResult.rejectValue("email", "duplicate", "An account with this email already exists.");
         }
-        if (dto.getPhone() != null && userService.phoneExists(dto.getPhone())) {
+        if (dto.phone() != null && userService.phoneExists(dto.phone())) {
             bindingResult.rejectValue("phone", "duplicate", "An account with this phone number already exists.");
         }
-        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+        if (!dto.password().equals(dto.confirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "mismatch", "Passwords do not match");
         }
         if (!dto.isPinConfirmed()) {

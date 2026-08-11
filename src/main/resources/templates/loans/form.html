@@ -16,6 +16,12 @@
                         <h3 th:text="${loanDTO.id != null ? 'Edit Loan' : 'Add New Loan'}">Add Loan</h3>
                     </div>
                     <div class="card__body">
+
+                        <p class="form-hint" th:if="${loan != null and loan.partiallyLocked}">
+                            A payment has already been recorded against this loan, so the amount and installment
+                            plan are locked. You can still extend the due date, change priority/tag, and edit notes.
+                        </p>
+
                         <form th:action="@{/loans/save}" th:object="${loanDTO}" method="post" class="form" id="loanForm" novalidate>
                             <input type="hidden" th:field="*{id}"/>
 
@@ -24,18 +30,23 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="lenderId">Lender <span class="required-mark">*</span></label>
-                                    <select id="lenderId" th:field="*{lenderId}" class="form-control form-select" required>
+                                    <select id="lenderId" th:field="*{lenderId}" class="form-control form-select"
+                                            th:disabled="${loanDTO.id != null}" required>
                                         <option value="">Select lender</option>
                                         <option th:each="l : ${lenders}" th:value="${l.id}" th:text="${l.name}"></option>
                                     </select>
+                                    <!-- disabled selects don't submit a value, so mirror it once the loan already exists -->
+                                    <input type="hidden" th:if="${loanDTO.id != null}" name="lenderId" th:value="*{lenderId}"/>
                                     <span class="form-error" th:if="${#fields.hasErrors('lenderId')}" th:errors="*{lenderId}">Error</span>
-                                    <p class="form-hint" th:if="${lenders.isEmpty()}">
+                                    <p class="form-hint" th:if="${loanDTO.id != null}">Lender can't be changed after a loan is created.</p>
+                                    <p class="form-hint" th:if="${lenders.isEmpty() and loanDTO.id == null}">
                                         No lenders yet — <a th:href="@{/lenders/new}">add one first</a>.
                                     </p>
                                 </div>
 
                                 <div class="form-group form-group--floating" th:classappend="${#fields.hasErrors('amount')} ? 'form-group--invalid'">
-                                    <input type="number" step="0.01" min="0.01" id="amount" th:field="*{amount}" class="form-control" placeholder=" " required/>
+                                    <input type="number" step="0.01" min="0.01" id="amount" th:field="*{amount}" class="form-control"
+                                           placeholder=" " th:readonly="${loan != null and loan.partiallyLocked}" required/>
                                     <label for="amount">Loan Amount (৳) <span class="required-mark">*</span></label>
                                     <span class="form-error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Error</span>
                                 </div>
@@ -43,7 +54,8 @@
 
                             <div class="form-row">
                                 <div class="form-group form-group--floating" th:classappend="${#fields.hasErrors('borrowDate')} ? 'form-group--invalid'">
-                                    <input type="date" id="borrowDate" th:field="*{borrowDate}" class="form-control" placeholder=" " required/>
+                                    <input type="date" id="borrowDate" th:field="*{borrowDate}" class="form-control" placeholder=" "
+                                           th:readonly="${loanDTO.id != null}" required/>
                                     <label for="borrowDate">Borrow Date <span class="required-mark">*</span></label>
                                     <span class="form-error" th:if="${#fields.hasErrors('borrowDate')}" th:errors="*{borrowDate}">Error</span>
                                 </div>
@@ -105,24 +117,30 @@
                             <div class="form-group">
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="paymentType" value="ONE_TIME" th:field="*{paymentType}"/>
+                                        <input type="radio" name="paymentType" value="ONE_TIME" th:field="*{paymentType}"
+                                               th:disabled="${loan != null and loan.partiallyLocked}"/>
                                         <span>One Time</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="paymentType" value="INSTALLMENT" th:field="*{paymentType}"/>
+                                        <input type="radio" name="paymentType" value="INSTALLMENT" th:field="*{paymentType}"
+                                               th:disabled="${loan != null and loan.partiallyLocked}"/>
                                         <span>Installment</span>
                                     </label>
                                 </div>
+                                <!-- disabled radios don't submit; mirror the current value so it round-trips unchanged -->
+                                <input type="hidden" th:if="${loan != null and loan.partiallyLocked}" name="paymentType" th:value="*{paymentType}"/>
                             </div>
 
                             <div class="form-row" id="installmentFields">
                                 <div class="form-group form-group--floating">
-                                    <input type="number" min="2" id="installmentCount" th:field="*{installmentCount}" class="form-control" placeholder=" "/>
+                                    <input type="number" min="2" id="installmentCount" th:field="*{installmentCount}" class="form-control"
+                                           placeholder=" " th:readonly="${loan != null and loan.partiallyLocked}"/>
                                     <label for="installmentCount">Installment Count</label>
                                     <span class="form-error" th:if="${#fields.hasErrors('installmentCount')}" th:errors="*{installmentCount}">Error</span>
                                 </div>
                                 <div class="form-group form-group--floating">
-                                    <input type="number" step="0.01" min="0.01" id="expectedInstallmentAmount" th:field="*{expectedInstallmentAmount}" class="form-control" placeholder=" "/>
+                                    <input type="number" step="0.01" min="0.01" id="expectedInstallmentAmount" th:field="*{expectedInstallmentAmount}"
+                                           class="form-control" placeholder=" " th:readonly="${loan != null and loan.partiallyLocked}"/>
                                     <label for="expectedInstallmentAmount">Expected Installment Amount (৳)</label>
                                     <span class="form-error" th:if="${#fields.hasErrors('expectedInstallmentAmount')}" th:errors="*{expectedInstallmentAmount}">Error</span>
                                 </div>

@@ -9,7 +9,15 @@
         <div th:replace="~{fragments/topbar :: topbar('Loans')}"></div>
         <div th:replace="~{fragments/toast :: toast}"></div>
 
-        <main class="page">
+        <div class="view-select-wrap">
+            <form th:action="@{/loans}" method="get">
+                <select id="viewSelect" name="view" class="view-select" onchange="this.form.submit()">
+                    <option value="active" th:selected="${view == 'active'}">Active</option>
+                    <option value="history" th:selected="${view == 'history'}">Fully Paid</option>
+                    <option value="all" th:selected="${view == 'all'}">All</option>
+                </select>
+            </form>
+        </div>
             <div class="page-toolbar">
                 <div class="search-box">
                     <i class="bi bi-search"></i>
@@ -17,6 +25,7 @@
                 </div>
 
                 <form th:action="@{/loans}" method="get" class="filter-bar">
+                    <input type="hidden" name="view" th:value="${view}"/>
                     <select name="status" class="form-control form-select form-select--sm" onchange="this.form.submit()">
                         <option value="">All Statuses</option>
                         <option th:each="s : ${statuses}" th:value="${s}" th:text="${#strings.replace(s,'_',' ')}" th:selected="${s == statusFilter}"></option>
@@ -62,17 +71,35 @@
                             <td>
                                 <div class="table-actions">
                                     <a th:href="@{/loans/{id}(id=${loan.id})}" class="icon-btn" title="View"><i class="bi bi-eye"></i></a>
-                                    <a th:href="@{/loans/{id}/edit(id=${loan.id})}" class="icon-btn" title="Edit"><i class="bi bi-pencil"></i></a>
-                                    <form th:action="@{/loans/{id}/delete(id=${loan.id})}" method="post" class="confirm-delete-form" data-name="this loan">
+
+                                    <a th:unless="${loan.fullyLocked}" th:href="@{/loans/{id}/edit(id=${loan.id})}" class="icon-btn" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <span th:if="${loan.fullyLocked}" class="icon-btn" title="Fully settled loans can't be edited"
+                                          style="opacity:.35;cursor:not-allowed;">
+                                        <i class="bi bi-pencil"></i>
+                                    </span>
+
+                                    <form th:if="${loan.deletable}" th:action="@{/loans/{id}/delete(id=${loan.id})}" method="post"
+                                          class="confirm-delete-form" data-name="this loan">
                                         <button type="submit" class="icon-btn icon-btn--danger" title="Delete"><i class="bi bi-trash"></i></button>
                                     </form>
+                                    <span th:unless="${loan.deletable}" class="icon-btn" title="Payments already recorded — can't delete"
+                                          style="opacity:.35;cursor:not-allowed;">
+                                        <i class="bi bi-trash"></i>
+                                    </span>
                                 </div>
                             </td>
                         </tr>
                         </tbody>
                     </table>
 
-                    <div class="empty-state" th:if="${loans.isEmpty()}">
+                    <div class="empty-state" th:if="${loans.isEmpty() and view == 'history'}">
+                        <i class="bi bi-check2-circle"></i>
+                        <p class="empty-state__title">No Fully Paid Loans Yet</p>
+                        <p class="empty-state__desc">Loans move here automatically once their remaining balance reaches zero.</p>
+                    </div>
+                    <div class="empty-state" th:if="${loans.isEmpty() and view != 'history'}">
                         <i class="bi bi-cash-coin"></i>
                         <p class="empty-state__title">No Loans Found</p>
                         <p class="empty-state__desc">Click "Add Loan" to create your first loan.</p>

@@ -31,10 +31,11 @@ public class LoanController {
 
     @GetMapping
     public String list(@AuthenticationPrincipal User user,
-                        @RequestParam(value = "q", required = false) String q,
-                        @RequestParam(value = "status", required = false) LoanStatus status,
-                        @RequestParam(value = "priority", required = false) Priority priority,
-                        Model model) {
+                       @RequestParam(value = "q", required = false) String q,
+                       @RequestParam(value = "status", required = false) LoanStatus status,
+                       @RequestParam(value = "priority", required = false) Priority priority,
+                       @RequestParam(value = "view", required = false, defaultValue = "active") String view,
+                       Model model) {
         List<Loan> loans;
         if (q != null && !q.isBlank()) {
             loans = loanService.searchLoans(user, q);
@@ -45,10 +46,21 @@ public class LoanController {
         } else {
             loans = loanService.getAllLoans(user);
         }
+
+        // Settled (fully paid) loans are never deleted — the payment trail feeds the borrower
+        // rating — but they're kept out of the default "Active" view so the working list stays
+        // clean. "History" shows only settled loans; "All" shows everything.
+        if ("history".equalsIgnoreCase(view)) {
+            loans = loans.stream().filter(l -> l.getStatus() == LoanStatus.PAID).toList();
+        } else if (!"all".equalsIgnoreCase(view)) {
+            loans = loans.stream().filter(l -> l.getStatus() != LoanStatus.PAID).toList();
+        }
+
         model.addAttribute("loans", loans);
         model.addAttribute("query", q);
         model.addAttribute("statusFilter", status);
         model.addAttribute("priorityFilter", priority);
+        model.addAttribute("view", view);
         model.addAttribute("statuses", LoanStatus.values());
         model.addAttribute("priorities", Priority.values());
         return "loans/list";
@@ -64,39 +76,49 @@ public class LoanController {
     }
 
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, @AuthenticationPrincipal User user, Model model) {
+    public String editForm(@PathVariable Long id, @AuthenticationPrincipal User user, Model model,
+                           RedirectAttributes redirectAttributes) {
         Loan loan = loanService.getLoanById(id, user);
-        LoanDTO dto = new LoanDTO();
-        dto.setId(loan.getId());
-        dto.setLenderId(loan.getLender().getId());
-        dto.setAmount(loan.getAmount());
-        dto.setBorrowDate(loan.getBorrowDate());
-        dto.setDueDate(loan.getDueDate());
-        dto.setPurpose(loan.getPurpose());
-        dto.setPriority(loan.getPriority());
-        dto.setTag(loan.getTag());
-        dto.setPaymentType(loan.getPaymentType());
-        dto.setInstallmentCount(loan.getInstallmentCount());
-        dto.setExpectedInstallmentAmount(loan.getExpectedInstallmentAmount());
-        dto.setNotes(loan.getNotes());
+
+        if (loan.isFullyLocked()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "This loan is fully settled and can no longer be edited.");
+            return "redirect:/loans/" + id;
+        }
+
+        LoanDTO dto = new LoanDTO(
+                loan.getId(),
+                loan.getLender().getId(),
+                loan.getAmount(),
+                loan.getBorrowDate(),
+                loan.getDueDate(),
+                loan.getPurpose(),
+                loan.getPriority(),
+                loan.getTag(),
+                loan.getPaymentType(),
+                loan.getInstallmentCount(),
+                loan.getExpectedInstallmentAmount(),
+                loan.getNotes()
+        );
         model.addAttribute("loanDTO", dto);
         model.addAttribute("lenders", lenderService.getAllLenders(user));
+        model.addAttribute("loan", loan); // exposes loan.untouched / partiallyLocked / fullyLocked to the template
         return "loans/form";
     }
 
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute("loanDTO") LoanDTO dto,
-                        BindingResult bindingResult,
-                        @AuthenticationPrincipal User user,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+                       BindingResult bindingResult,
+                       @AuthenticationPrincipal User user,
+                       Model model,
+                       RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("lenders", lenderService.getAllLenders(user));
             return "loans/form";
         }
         Loan loan = loanService.saveLoan(dto, user);
         redirectAttributes.addFlashAttribute("successMessage",
-                dto.getId() == null ? "Loan added successfully." : "Loan updated successfully.");
+                dto.id() == null ? "Loan added successfully." : "Loan updated successfully.");
         return "redirect:/loans/" + loan.getId();
     }
 
@@ -110,7 +132,7 @@ public class LoanController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, @AuthenticationPrincipal User user,
-                          RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes) {
         loanService.deleteLoan(id, user);
         redirectAttributes.addFlashAttribute("successMessage", "Loan deleted.");
         return "redirect:/loans";

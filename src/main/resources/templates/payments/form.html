@@ -26,6 +26,7 @@
                                     <option value="">Select loan</option>
                                     <option th:each="l : ${loans}" th:value="${l.id}"
                                             th:data-remaining="${l.remainingAmount}"
+                                            th:data-borrow-date="${l.borrowDate}"
                                             th:selected="${l.id == paymentDTO.loanId}"
                                             th:text="'#' + ${l.id} + ' — ' + ${l.lender.name} + ' (Remaining ৳ ' + ${#numbers.formatDecimal(l.remainingAmount, 0, 'COMMA', 2, 'POINT')} + ')'"></option>
                                 </select>
@@ -45,6 +46,7 @@
 
                                 <div class="form-group form-group--floating" th:classappend="${#fields.hasErrors('paymentDate')} ? 'form-group--invalid'">
                                     <input type="date" id="paymentDate" th:field="*{paymentDate}" class="form-control" placeholder=" " required/>
+                                    <span class="form-hint" id="paymentDateHint"></span>
                                     <label for="paymentDate">Payment Date <span class="required-mark">*</span></label>
                                     <span class="form-error" th:if="${#fields.hasErrors('paymentDate')}" th:errors="*{paymentDate}">Error</span>
                                 </div>

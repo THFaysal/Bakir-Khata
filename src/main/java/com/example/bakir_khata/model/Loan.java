@@ -80,7 +80,6 @@ public class Loan {
     @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
 
-    /** Percentage of the loan repaid so far, 0-100, rounded to whole number. Used for the progress bar. */
     @Transient
     public int getRepaymentPercentage() {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
@@ -90,5 +89,24 @@ public class Loan {
         return paid.multiply(BigDecimal.valueOf(100))
                 .divide(amount, 0, java.math.RoundingMode.HALF_UP)
                 .intValue();
+    }
+    @Transient
+    public boolean isUntouched() {
+        return amount != null && remainingAmount != null
+                && remainingAmount.compareTo(amount) == 0;
+    }
+
+    @Transient
+    public boolean isFullyLocked() {
+        return status == LoanStatus.PAID;
+    }
+
+    @Transient
+    public boolean isPartiallyLocked() {
+        return !isFullyLocked() && !isUntouched();
+    }
+    @Transient
+    public boolean isDeletable() {
+        return isUntouched();
     }
 }

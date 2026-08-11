@@ -26,23 +26,23 @@ public class LenderServiceImpl implements LenderService {
 
     @Override
     public Lender saveLender(LenderDTO dto, User user) {
-        Lender lender = dto.getId() == null
+        Lender lender = dto.id() == null
                 ? new Lender()
-                : getLenderById(dto.getId(), user);
+                : getLenderById(dto.id(), user);
 
-        lender.setName(dto.getName());
-        lender.setPhone(dto.getPhone());
-        lender.setEmail(dto.getEmail());
-        lender.setAddress(dto.getAddress());
-        lender.setRelationship(dto.getRelationship());
-        lender.setNotes(dto.getNotes());
+        lender.setName(dto.name());
+        lender.setPhone(dto.phone());
+        lender.setEmail(dto.email());
+        lender.setAddress(dto.address());
+        lender.setRelationship(dto.relationship());
+        lender.setNotes(dto.notes());
         lender.setUser(user);
 
-        if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
-            String path = fileStorageService.store(dto.getProfileImage(), "lenders");
+        if (dto.profileImage() != null && !dto.profileImage().isEmpty()) {
+            String path = fileStorageService.store(dto.profileImage(), "lenders");
             lender.setProfileImagePath(path);
-        } else if (StringUtils.hasText(dto.getExistingProfileImagePath())) {
-            lender.setProfileImagePath(dto.getExistingProfileImagePath());
+        } else if (StringUtils.hasText(dto.existingProfileImagePath())) {
+            lender.setProfileImagePath(dto.existingProfileImagePath());
         }
 
         return lenderRepository.save(lender);

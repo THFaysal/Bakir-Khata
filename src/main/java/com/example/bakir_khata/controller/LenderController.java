@@ -22,8 +22,8 @@ public class LenderController {
 
     @GetMapping
     public String list(@AuthenticationPrincipal User user,
-                        @RequestParam(value = "q", required = false) String q,
-                        Model model) {
+                       @RequestParam(value = "q", required = false) String q,
+                       Model model) {
         model.addAttribute("lenders", lenderService.searchLenders(user, q));
         model.addAttribute("query", q);
         return "lenders/list";
@@ -40,36 +40,38 @@ public class LenderController {
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, @AuthenticationPrincipal User user, Model model) {
         var lender = lenderService.getLenderById(id, user);
-        LenderDTO dto = new LenderDTO();
-        dto.setId(lender.getId());
-        dto.setName(lender.getName());
-        dto.setPhone(lender.getPhone());
-        dto.setEmail(lender.getEmail());
-        dto.setAddress(lender.getAddress());
-        dto.setRelationship(lender.getRelationship());
-        dto.setNotes(lender.getNotes());
-        dto.setExistingProfileImagePath(lender.getProfileImagePath());
+        LenderDTO dto = new LenderDTO(
+                lender.getId(),
+                lender.getName(),
+                lender.getPhone(),
+                lender.getEmail(),
+                lender.getAddress(),
+                lender.getRelationship(),
+                lender.getNotes(),
+                null,
+                lender.getProfileImagePath()
+        );
         model.addAttribute("lenderDTO", dto);
         return "lenders/form";
     }
 
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute("lenderDTO") LenderDTO dto,
-                        BindingResult bindingResult,
-                        @AuthenticationPrincipal User user,
-                        RedirectAttributes redirectAttributes) {
+                       BindingResult bindingResult,
+                       @AuthenticationPrincipal User user,
+                       RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "lenders/form";
         }
         lenderService.saveLender(dto, user);
         redirectAttributes.addFlashAttribute("successMessage",
-                dto.getId() == null ? "Lender added successfully." : "Lender updated successfully.");
+                dto.id() == null ? "Lender added successfully." : "Lender updated successfully.");
         return "redirect:/lenders";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, @AuthenticationPrincipal User user,
-                          RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes) {
         lenderService.deleteLender(id, user);
         redirectAttributes.addFlashAttribute("successMessage", "Lender deleted.");
         return "redirect:/lenders";

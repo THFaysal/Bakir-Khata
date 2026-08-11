@@ -33,25 +33,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(RegistrationDTO dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
+        if (userRepository.existsByEmail(dto.email())) {
             throw new BusinessRuleException("An account with this email already exists.");
         }
-        if (userRepository.existsByPhone(dto.getPhone())) {
+        if (userRepository.existsByPhone(dto.phone())) {
             throw new BusinessRuleException("An account with this phone number already exists.");
         }
-        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+        if (!dto.password().equals(dto.confirmPassword())) {
             throw new BusinessRuleException("Passwords do not match.");
         }
         if (!dto.isPinConfirmed()) {
             throw new BusinessRuleException("PIN and confirm PIN do not match.");
         }
         User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setPhone(dto.getPhone());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setName(dto.name());
+        user.setEmail(dto.email());
+        user.setPhone(dto.phone());
+        user.setPassword(passwordEncoder.encode(dto.password()));
         if (dto.isPinProvided()) {
-            user.setPin(passwordEncoder.encode(dto.getPin()));
+            user.setPin(passwordEncoder.encode(dto.pin()));
         }
         return userRepository.save(user);
     }
