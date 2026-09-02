@@ -1,0 +1,339 @@
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.app-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.2s ease;
+}
+
+.page {
+    padding: var(--space-4);
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--color-card);
+    border-right: 1px solid var(--color-border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3) 0;
+    z-index: 100;
+    transition: transform 0.25s ease;
+}
+
+.sidebar__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+.sidebar__logo {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--gradient-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.sidebar__name {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--color-text-primary);
+}
+
+.sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 var(--space-2);
+}
+
+.sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 11px var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__link i {
+    font-size: 17px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar__link:hover {
+    background: var(--color-gray-soft);
+    color: var(--color-text-primary);
+}
+
+.sidebar__link--active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+    height: var(--topbar-height);
+    background: var(--color-card);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.topbar__hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    padding: var(--space-1);
+}
+
+.topbar__title {
+    margin: 0;
+    font-size: 19px;
+    flex: 1;
+}
+
+.topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.topbar__icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    background: var(--color-gray-soft);
+    font-size: 16px;
+    transition: background 0.15s ease;
+}
+
+.topbar__icon-btn:hover {
+    background: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.topbar__badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--color-danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+}
+
+.topbar__user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.topbar__avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.topbar__username {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ---------- Auth pages ---------- */
+.auth-body {
+    background: var(--gradient-light);
+    min-height: 100vh;
+}
+
+.auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+}
+
+.auth-card {
+    background: var(--color-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-6) var(--space-5);
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-card__brand {
+    text-align: center;
+    margin-bottom: var(--space-4);
+}
+
+.auth-card__logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    background: var(--gradient-light);
+    color: var(--color-primary);
+    font-size: 26px;
+    margin-bottom: var(--space-3);
+}
+
+.auth-card__brand h1 {
+    font-size: 22px;
+    margin-bottom: var(--space-1);
+}
+
+.auth-card__brand p {
+    font-size: 13px;
+    margin: 0;
+}
+
+.auth-card__footer {
+    text-align: center;
+    margin-top: var(--space-4);
+    font-size: 14px;
+}
+
+/* ---------- Login mode toggle (Email/Password vs Mobile/PIN) ---------- */
+.login-toggle {
+    display: flex;
+    background: var(--color-gray-soft);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: var(--space-1);
+}
+
+.login-toggle__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-toggle__btn:hover {
+    color: var(--color-text-primary);
+}
+
+.login-toggle__btn--active {
+    background: var(--color-card);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Checkbox option (remember me) ---------- */
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+/* ---------- Toolbars / grids used across pages ---------- */
+.page-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.form-card-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.form-card {
+    width: 100%;
+    max-width: 720px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    align-items: start;
+}
