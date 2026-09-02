@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateMethodUI() {
         const method = selectedMethod();
-        const digital = method !== 'CASH';
 
         if (method === 'MOBILE_BANKING') {
             mobileProviderSection.classList.remove('is-hidden');
@@ -44,13 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 p.checked = false;
             });
         }
-
-        destinationSection.hidden = !digital;
-
-        if (digitalDemoNotice) {
-            digitalDemoNotice.hidden = !digital;
+        if (method === 'CASH' || !method) {
+            destinationSection.hidden = true;
+        } else {
+            destinationSection.hidden = false;
         }
-
         updateDestinations();
     }
 
